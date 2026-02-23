@@ -1,0 +1,23 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Build
+bin/
+dist/
+
+# Go
+*.test
+coverage.out
+
+# IDE
+.vscode/
+
+# macOS
+.DS_Store
+
+# Data file
+data.json
