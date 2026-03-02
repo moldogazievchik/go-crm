@@ -137,3 +137,32 @@ func writeLeadError(w http.ResponseWriter, err error) {
 	}
 	writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal"})
 }
+
+type patchLeadRequest struct {
+	Title      *string `json:"title"`
+	Value      *int    `json:"value"`
+	CustomerID *string `json:"customer_id"`
+}
+
+func (h *LeadHandler) patchLead(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+
+	var req patchLeadRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_json", "invalid json")
+		return
+	}
+
+	updated, err := h.svc.UpdateLead(id, req.Title, req.Value, req.CustomerID)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, updated)
+}

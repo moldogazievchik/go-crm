@@ -94,3 +94,52 @@ func (s *LeadService) UpdateStatus(id string, status LeadStatus) (Lead, error) {
 	l.Status = status
 	return s.leads.Update(l)
 }
+
+func (s *LeadService) UpdateLead(id string, title *string, value *int, customerID *string) (Lead, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return Lead{}, ErrValidation("id is required")
+	}
+
+	current, err := s.leads.GetByID(id)
+	if err != nil {
+		return Lead{}, err
+	}
+
+	// title (если передали)
+	if title != nil {
+		t := strings.TrimSpace(*title)
+		if t == "" {
+			return Lead{}, ErrValidation("title is required")
+		}
+		current.Title = t
+	}
+
+	// value (если передали)
+	if value != nil {
+		if *value < 0 {
+			return Lead{}, ErrValidation("value must be >= 0")
+		}
+		current.Value = *value
+	}
+
+	// customer_id (если передали) + проверка что клиент существует
+	if customerID != nil {
+		cid := strings.TrimSpace(*customerID)
+		if cid == "" {
+			return Lead{}, ErrValidation("customer_id is required")
+		}
+
+		_, err := s.customers.GetByID(cid)
+		if err != nil {
+			if err == ErrCustomerNotFound {
+				return Lead{}, ErrValidation("customer_id does not exist")
+			}
+			return Lead{}, err
+		}
+
+		current.CustomerID = cid
+	}
+
+	return s.leads.Update(current)
+}

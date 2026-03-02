@@ -54,6 +54,7 @@ func Routes() http.Handler {
 		r.Get("/", lh.leads)
 		r.Post("/", lh.leads)
 		r.Get("/{id}", lh.leadByID)
+		r.Patch("/{id}", lh.patchLead)
 		r.Patch("/{id}/status", lh.leadStatus)
 	})
 
