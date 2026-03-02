@@ -59,3 +59,29 @@ func newID() string {
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
 }
+
+func (s *CustomerService) UpdateCustomer(id, name, email string) (Customer, error) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return Customer{}, ErrValidation("id is required")
+	}
+
+	current, err := s.repo.GetByID(id)
+	if err != nil {
+		return Customer{}, err
+	}
+
+	// частичное обновление: если поле пустое — не трогаем
+	if strings.TrimSpace(name) != "" {
+		current.Name = strings.TrimSpace(name)
+	}
+	if strings.TrimSpace(email) != "" {
+		e := strings.TrimSpace(email)
+		if !strings.Contains(e, "@") {
+			return Customer{}, ErrValidation("email is invalid")
+		}
+		current.Email = e
+	}
+
+	return s.repo.Update(current)
+}

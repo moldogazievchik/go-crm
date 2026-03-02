@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/moldogazievchik/go-crm/internal/crm"
 )
 
@@ -36,8 +37,7 @@ func (h *LeadHandler) leadByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := strings.TrimPrefix(r.URL.Path, "/leads/")
-	id = strings.TrimSpace(id)
+	id := chi.URLParam(r, "id")
 
 	l, err := h.svc.GetLead(id)
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *LeadHandler) leadStatus(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusNotFound, map[string]string{"error": "not found"})
 		return
 	}
-	id := strings.TrimSpace(parts[0])
+	id := chi.URLParam(r, "id")
 
 	var req struct {
 		Status string `json:"status"`
@@ -73,7 +73,7 @@ func (h *LeadHandler) leadStatus(w http.ResponseWriter, r *http.Request) {
 
 	l, err := h.svc.UpdateStatus(id, crm.LeadStatus(req.Status))
 	if err != nil {
-		writeLeadError(w, err)
+		writeDomainError(w, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, l)
@@ -88,7 +88,7 @@ type createLeadRequest struct {
 func (h *LeadHandler) createLead(w http.ResponseWriter, r *http.Request) {
 	var req createLeadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid json"})
+		writeAPIError(w, http.StatusBadRequest, "invalid_json", "invalid json")
 		return
 	}
 

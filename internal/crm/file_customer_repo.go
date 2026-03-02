@@ -42,3 +42,18 @@ func (r *FileCustomerRepo) GetByID(id string) (Customer, error) {
 	}
 	return c, nil
 }
+
+func (r *FileCustomerRepo) Update(c Customer) (Customer, error) {
+	r.store.mu.Lock()
+	if _, ok := r.store.Customers[c.ID]; !ok {
+		r.store.mu.Unlock()
+		return Customer{}, ErrCustomerNotFound
+	}
+	r.store.Customers[c.ID] = c
+	r.store.mu.Unlock()
+
+	if err := r.store.Save(); err != nil {
+		return Customer{}, err
+	}
+	return c, nil
+}

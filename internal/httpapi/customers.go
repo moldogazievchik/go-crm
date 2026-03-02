@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/moldogazievchik/go-crm/internal/crm"
 )
 
@@ -36,8 +37,7 @@ func (h *CustomerHandler) customerByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id := strings.TrimPrefix(r.URL.Path, "/customers/")
-	id = strings.TrimSpace(id)
+	id := strings.TrimSpace(chi.URLParam(r, "id"))
 
 	c, err := h.svc.GetCustomer(id)
 	if err != nil {
@@ -115,13 +115,50 @@ func (h *CustomerHandler) customerLeads(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	customerID := strings.TrimSpace(parts[0])
+	customerID := chi.URLParam(r, "id")
 
 	items, err := h.leadSvc.ListLeadsByCustomer(customerID)
 	if err != nil {
-		writeError(w, err) // твой writeError уже умеет ErrValidation/NotFound
+		writeDomainError(w, err) // твой writeError уже умеет ErrValidation/NotFound
 		return
 	}
 
 	writeJSON(w, http.StatusOK, items)
+}
+
+type patchCustomerRequest struct {
+	Name  *string `json:"name"`
+	Email *string `json:"email"`
+}
+
+func (h *CustomerHandler) patchCustomer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+
+	var req patchCustomerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_json", "invalid json")
+		return
+	}
+
+	name := ""
+	email := ""
+	if req.Name != nil {
+		name = *req.Name
+	}
+	if req.Email != nil {
+		email = *req.Email
+	}
+
+	updated, err := h.svc.UpdateCustomer(id, name, email)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, updated)
 }
