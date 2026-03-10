@@ -27,7 +27,10 @@ func TestCustomers_CreateAndGet(t *testing.T) {
 		t.Fatalf("chdir: %v", err)
 	}
 
-	h := Routes()
+	h := RoutesWithConfig(Config{
+		DataPath:    path,
+		CorsOrigins: []string{"http://localhost:5173"},
+	})
 
 	// 1) POST /customers
 	body := []byte(`{"name":"Aktan","email":"aktan@example.com"}`)

@@ -3,16 +3,18 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/moldogazievchik/go-crm/internal/httpapi"
 )
 
 func main() {
-	handler := httpapi.Routes()
-
-	log.Println("Server is running on http://localhost:8080")
-	err := http.ListenAndServe(":8080", handler)
-	if err != nil {
-		log.Fatal(err)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
 	}
+
+	addr := ":" + port
+	log.Printf("listening on %s", addr)
+	log.Fatal(http.ListenAndServe(addr, httpapi.RoutesWithConfig(httpapi.LoadConfig())))
 }

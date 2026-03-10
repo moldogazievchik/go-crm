@@ -9,7 +9,7 @@ import (
 )
 
 // Routes собирает все маршруты приложения.
-func Routes() http.Handler {
+func RoutesWithConfig(cfg Config) http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(cors.Handler(cors.Options{
@@ -25,7 +25,7 @@ func Routes() http.Handler {
 	r.Get("/health", healthHandler)
 
 	// ---------- FILE STORE ----------
-	store := crm.NewStore("./data.json")
+	store := crm.NewStore(cfg.DataPath)
 	_ = store.Load()
 
 	// ---------- Customers ----------
@@ -59,4 +59,5 @@ func Routes() http.Handler {
 	})
 
 	return r
+
 }
