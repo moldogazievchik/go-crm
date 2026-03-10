@@ -11,6 +11,7 @@ type LeadRepository interface {
 	ListByCustomerID(customerID string) ([]Lead, error)
 	GetByID(id string) (Lead, error)
 	Update(l Lead) (Lead, error)
+	Delete(id string) error
 }
 
 var ErrLeadNotFound = errors.New("lead not found")
@@ -79,4 +80,16 @@ func (r *MemoryLeadRepo) Update(l Lead) (Lead, error) {
 
 	r.byID[l.ID] = l
 	return l, nil
+}
+
+func (r *MemoryLeadRepo) Delete(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.byID[id]; !ok {
+		return ErrLeadNotFound
+	}
+
+	delete(r.byID, id)
+	return nil
 }

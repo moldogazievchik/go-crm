@@ -166,3 +166,20 @@ func (h *LeadHandler) patchLead(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, updated)
 }
+
+func (h *LeadHandler) deleteLead(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+
+	err := h.svc.DeleteLead(id)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

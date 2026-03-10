@@ -69,3 +69,19 @@ func (r *FileLeadRepo) Update(l Lead) (Lead, error) {
 	}
 	return l, nil
 }
+
+func (r *FileLeadRepo) Delete(id string) error {
+	r.store.mu.Lock()
+	if _, ok := r.store.Leads[id]; !ok {
+		r.store.mu.Unlock()
+		return ErrLeadNotFound
+	}
+	delete(r.store.Leads, id)
+	r.store.mu.Unlock()
+
+	if err := r.store.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -172,3 +172,15 @@ func (s *LeadService) Stats() (LeadStats, error) {
 
 	return stats, nil
 }
+
+// DeleteLead удаляет лид по id. Если лида с таким id нет, возвращает ErrLeadNotFound
+func (s *LeadService) DeleteLead(id string) error {
+	id = strings.TrimSpace(id)
+
+	if id == "" {
+		return ErrValidation("id is required")
+
+	}
+
+	return s.leads.Delete(id)
+}

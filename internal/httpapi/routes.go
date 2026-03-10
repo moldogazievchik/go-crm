@@ -37,7 +37,7 @@ func RoutesWithConfig(cfg Config) http.Handler {
 	leadSvc := crm.NewLeadService(leadRepo, customerRepo)
 
 	// ---------- Handlers ----------
-	ch := NewCustomerHandler(customerSvc, leadSvc)
+	ch := NewCustomerHandler(customerSvc, leadSvc, leadRepo)
 	lh := NewLeadHandler(leadSvc)
 	sh := NewStatsHandler(leadSvc)
 
@@ -47,6 +47,7 @@ func RoutesWithConfig(cfg Config) http.Handler {
 		r.Post("/", ch.customers)
 		r.Get("/{id}", ch.customerByID)
 		r.Patch("/{id}", ch.patchCustomer)
+		r.Delete("/{id}", ch.deleteCustomer)
 		r.Get("/{id}/leads", ch.customerLeads)
 	})
 
@@ -57,6 +58,7 @@ func RoutesWithConfig(cfg Config) http.Handler {
 		r.Get("/{id}", lh.leadByID)
 		r.Patch("/{id}", lh.patchLead)
 		r.Patch("/{id}/status", lh.leadStatus)
+		r.Delete("/{id}", lh.deleteLead)
 	})
 
 	// Stats

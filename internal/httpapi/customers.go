@@ -11,13 +11,16 @@ import (
 )
 
 type CustomerHandler struct {
-	svc     *crm.CustomerService
-	leadSvc *crm.LeadService
+	svc      *crm.CustomerService
+	leadSvc  *crm.LeadService
+	leadRepo crm.LeadRepository
 }
 
-func NewCustomerHandler(svc *crm.CustomerService, leadSvc *crm.LeadService) *CustomerHandler {
-	return &CustomerHandler{svc: svc, leadSvc: leadSvc}
-
+func NewCustomerHandler(svc *crm.CustomerService, leadSvc *crm.LeadService, leadRepo crm.LeadRepository) *CustomerHandler {
+	return &CustomerHandler{
+		svc:      svc,
+		leadSvc:  leadSvc,
+		leadRepo: leadRepo}
 }
 
 func (h *CustomerHandler) customers(w http.ResponseWriter, r *http.Request) {
@@ -161,4 +164,20 @@ func (h *CustomerHandler) patchCustomer(w http.ResponseWriter, r *http.Request) 
 	}
 
 	writeJSON(w, http.StatusOK, updated)
+}
+
+func (h *CustomerHandler) deleteCustomer(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	id := chi.URLParam(r, "id")
+
+	err := h.svc.DeleteCustomer(id, h.leadRepo)
+	if err != nil {
+		writeDomainError(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

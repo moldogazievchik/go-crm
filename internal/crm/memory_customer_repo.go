@@ -11,6 +11,7 @@ type CustomerRepository interface {
 	List() ([]Customer, error)
 	GetByID(id string) (Customer, error)
 	Update(c Customer) (Customer, error)
+	Delete(id string) error
 }
 
 var ErrCustomerNotFound = errors.New("customer not found")
@@ -65,4 +66,16 @@ func (r *MemoryCustomerRepo) Update(c Customer) (Customer, error) {
 	}
 	r.byID[c.ID] = c
 	return c, nil
+}
+
+func (r *MemoryCustomerRepo) Delete(id string) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if _, ok := r.byID[id]; !ok {
+		return ErrCustomerNotFound
+	}
+
+	delete(r.byID, id)
+	return nil
 }

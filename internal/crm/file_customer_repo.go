@@ -57,3 +57,19 @@ func (r *FileCustomerRepo) Update(c Customer) (Customer, error) {
 	}
 	return c, nil
 }
+
+func (r *FileCustomerRepo) Delete(id string) error {
+	r.store.mu.Lock()
+	if _, ok := r.store.Customers[id]; !ok {
+		r.store.mu.Unlock()
+		return ErrCustomerNotFound
+	}
+	delete(r.store.Customers, id)
+	r.store.mu.Unlock()
+
+	if err := r.store.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}

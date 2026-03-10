@@ -54,6 +54,8 @@ type ErrValidation string
 
 func (e ErrValidation) Error() string { return string(e) }
 
+var ErrCustomerHasLeads = ErrValidation("customer has leads and cannot be deleted")
+
 func newID() string {
 	b := make([]byte, 16)
 	_, _ = rand.Read(b)
@@ -84,4 +86,26 @@ func (s *CustomerService) UpdateCustomer(id, name, email string) (Customer, erro
 	}
 
 	return s.repo.Update(current)
+}
+
+func (s *CustomerService) DeleteCustomer(id string, leadRepo LeadRepository) error {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return ErrValidation("id is required")
+	}
+
+	_, err := s.repo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	leads, err := leadRepo.ListByCustomerID(id)
+	if err != nil {
+		return err
+	}
+	if len(leads) > 0 {
+		return ErrCustomerHasLeads
+	}
+
+	return s.repo.Delete(id)
 }
