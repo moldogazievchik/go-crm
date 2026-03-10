@@ -143,3 +143,32 @@ func (s *LeadService) UpdateLead(id string, title *string, value *int, customerI
 
 	return s.leads.Update(current)
 }
+
+func (s *LeadService) Stats() (LeadStats, error) {
+	items, err := s.leads.List()
+	if err != nil {
+		return LeadStats{}, err
+	}
+
+	stats := LeadStats{}
+
+	for _, l := range items {
+		stats.TotalCount++
+
+		stats.TotalValue += l.Value
+
+		switch l.Status {
+		case LeadNew:
+			stats.NewCount++
+		case LeadInProgress:
+			stats.InProgressCount++
+		case LeadWon:
+			stats.WonCount++
+			stats.WonValue += l.Value
+		case LeadLost:
+			stats.LostCount++
+		}
+	}
+
+	return stats, nil
+}

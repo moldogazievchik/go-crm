@@ -39,6 +39,7 @@ func RoutesWithConfig(cfg Config) http.Handler {
 	// ---------- Handlers ----------
 	ch := NewCustomerHandler(customerSvc, leadSvc)
 	lh := NewLeadHandler(leadSvc)
+	sh := NewStatsHandler(leadSvc)
 
 	// Customers
 	r.Route("/customers", func(r chi.Router) {
@@ -57,6 +58,9 @@ func RoutesWithConfig(cfg Config) http.Handler {
 		r.Patch("/{id}", lh.patchLead)
 		r.Patch("/{id}/status", lh.leadStatus)
 	})
+
+	// Stats
+	r.Get("/stats", sh.stats)
 
 	return r
 
